@@ -73,8 +73,6 @@ for state in glob.glob(base):
             county_list.append(line.lower().replace("county", "").strip())
         master_county_dict[state_code] = county_list
 
-
-
 # Check for different names being used for the same county
 dupe_dict = {}  # Stores {State : {original name : final name}}
 dupe_list = {}  # Stores {State : [original names]} 
@@ -99,10 +97,10 @@ for code in raw_county_dict:
 
 
 ### PROCESSING 
-STATE = 'IL'
+STATE = 'AL'
 
 # Initialize a list of dictionaries, each entry representing a county and its data 
-schema = ["ID", "customers_affected", "customers_served", "start_time", "end_time", "duration"]
+schema = ["ID", "county", "customers_affected", "customers_served", "start_time", "end_time", "duration"]
 county_dfs = {c: pd.DataFrame(columns=schema) for c in master_county_dict[STATE]}
 files = glob.glob(f'Processing\\States\\{STATE}\\*.csv')  
 
@@ -190,6 +188,7 @@ for file in files:
             )
 
             result['duration'] = result['end_time'] - result['start_time']
+
             if county_dfs[county].empty:
                 county_dfs[county] = result
             else:
@@ -200,8 +199,26 @@ for county in county_dfs:
     county_dfs[county] = county_dfs[county].sort_values('start_time').reset_index(drop=True)
     county_dfs[county]['ID'] = range(1, len(county_dfs[county]) + 1)  
 
-# Uncomment below to print county level data 
-# print(county_dfs)
+# Create filler dataframes for counties with no reported outages
+for county in master_county_dict[STATE]:
+    if county_dfs[county].empty:
+            result = pd.DataFrame([{
+                "ID": 1,
+                "county": county,
+                "customers_affected": 0,
+                "customers_served": 0,
+                "start_time": pd.NaT,
+                "end_time": pd.NaT,
+                "duration": pd.Timedelta(0)
+            }], columns=schema) 
+            if county_dfs[county].empty:
+                county_dfs[county] = result
+            else:
+                county_dfs[county] = pd.concat([county_dfs[county], result], ignore_index=True)
 
+# Uncomment below to print county level data 
+# pprint.pprint(county_dfs)
+
+# Uncomment below to write data to corresponding csv file
 # combined = pd.concat(county_dfs.values(), ignore_index=True)
 # combined.to_csv(f"Processing\\Processed_Data\\{STATE}_all_counties_{date}.csv", index=False)
