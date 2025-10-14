@@ -9,7 +9,7 @@ from datetime import timedelta
 ### PREPROCESSING WORK
 
 # Get all column names
-files = glob.glob('Processing\\States\\**\\*.csv')  
+files = glob.glob(os.path.join('States', '**', '*.csv'), recursive=True)
 cols = set()   
 
 for file in files:
@@ -32,11 +32,10 @@ for cser in c_served:
 for time in timestamp:
     col_map[time] = "timestamp"
 
-
-
 # Get the raw county set for each state
 raw_county_dict = {}
-base = r"Processing\\States"
+base = os.path.join("States")
+key_val_set = set()
 
 for state in glob.glob(os.path.join(base, '*')):
     state_code = state[-2:]
@@ -58,11 +57,9 @@ for state in glob.glob(os.path.join(base, '*')):
     county_set = sorted(county_set)
     raw_county_dict[state_code] = county_set
 
-
-
 # Compile the "master" county list we will use
 master_county_dict = {}
-base = "Processing\\CountyList\\*.txt"
+base = os.path.join("CountyList", "*.txt")
 
 for state in glob.glob(base):
     with open(state, 'r', encoding="utf-8") as file:
@@ -74,8 +71,8 @@ for state in glob.glob(base):
         master_county_dict[state_code] = county_list
 
 # Check for different names being used for the same county
-dupe_dict = {}  # Stores {State : {original name : final name}}
-dupe_list = {}  # Stores {State : [original names]} 
+dupe_dict = {}
+dupe_list = {}
 
 for code in raw_county_dict:
     dupe_entry = {}
@@ -85,12 +82,11 @@ for code in raw_county_dict:
         match, score, _ = process.extractOne(raw, master_county_dict[code])
         if score >= 85: 
             dupe_entry[raw] = match
-            # dupe_entry.append({raw: {match: score}})
             dupe_names.append(raw)
     dupe_dict[code] = dupe_entry
     dupe_list[code] = dupe_names
 
-# Standardizes the df columns for processing purposes
+# Partner's Task #3: Standardizes the df columns for processing purposes
 def standardize_cols(df, state):
     # Remove duplicate customers affected columns, keeping the one with the highest sum
     dupes = [c for c in df.columns if c.strip().lower() in c_affected]
@@ -104,17 +100,15 @@ def standardize_cols(df, state):
         lower = col.strip().lower()
 
         if lower in col_map:
-            df.rename(columns={
-                col: col_map[lower]
-            }, inplace=True)
+            df.rename(columns={col: col_map[lower]}, inplace=True)
         elif lower != "% out":
             df.drop(columns=[col], inplace=True)
     
     # Remove invalid rows in county col
-    df.dropna(subset=['county'])
-    df = df[~df['county'].isin(['unknown', 'Unknown', 'UNKNOWN',  ''])].copy()
+    df = df.dropna(subset=['county'])
+    df = df[~df['county'].isin(['unknown', 'Unknown', 'UNKNOWN', ''])].copy()
 
-    # Calculate and estimated customers served using affected / % out data
+    # Calculate estimated customers served using affected / % out data
     if "% out" in df.columns:
         if "customers_served" in df.columns:
             df.drop(columns="% out", inplace=True)
@@ -138,10 +132,9 @@ def standardize_cols(df, state):
             skip = True
         
     if skip:
-        print(f"Missing: {missing}\nFrom: {file}\n")
         return [False, df]  
     else:
-        # Standardize customers affected and served columns (e.g. "123,456" --> 123456)
+        # Standardize customers affected and served columns
         df['customers_affected'] = (
             pd.to_numeric(
                 df['customers_affected']
@@ -149,7 +142,7 @@ def standardize_cols(df, state):
                     .str.replace('"', '', regex=False)
                     .str.replace(',', '', regex=False),
                     errors='coerce'
-            ).astype("Int64")
+            ).fillna(0)
         )
         
         df['customers_served'] = (
@@ -159,8 +152,9 @@ def standardize_cols(df, state):
                     .str.replace('"', '', regex=False)
                     .str.replace(',', '', regex=False),
                     errors='coerce'
-            ).astype("Int64")
+            ).fillna(0)
         )
+        
         # Standardize county names
         county_dict = dupe_dict[state]
         df = df.copy()
@@ -169,7 +163,7 @@ def standardize_cols(df, state):
         return [True, df]
 
 # Pull most recent customers served data as a baseline
-base = r"Processing\\States"
+base = os.path.join("States")
 
 for state in glob.glob(os.path.join(base, '*')):
     state_code = state[-2:]
@@ -205,6 +199,7 @@ for state in glob.glob(os.path.join(base, '*')):
                     served_dict[county] = [new_served, new_ts]
                 else:
                     served_dict[county] = [served, timestamp]
+    
     df = pd.DataFrame.from_dict(
         served_dict,
         orient="index",
@@ -213,19 +208,21 @@ for state in glob.glob(os.path.join(base, '*')):
     df = df.rename(columns={'index': 'county'})
     df = df.sort_values('county')
     # Uncomment below to write data into state csv
-    # df.to_csv(f"Processing\\CustomersServed\\{state_code}_customers_served.csv")
+    # df.to_csv(os.path.join("CustomersServed", f"{state_code}_customers_served.csv"))
 
 ### PROCESSING 
-STATE = 'AL'
+STATE = 'TN'
 
-# Initialize a list of dictionaries, each entry representing a county and its data 
-schema = ["ID", "county", "customers_affected", "customers_served", "start_time", "end_time", "duration"]
+# Initialize with updated schema including lower_bound_customers_affected
+schema = ["ID", "county", "customers_affected", "customers_served", "lower_bound_customers_affected", "start_time", "end_time", "duration"]
 county_dfs = {c: pd.DataFrame(columns=schema) for c in master_county_dict[STATE]}
-files = glob.glob(f'Processing\\States\\{STATE}\\*.csv')  
+files = glob.glob(os.path.join('States', STATE, '*.csv'))
 
 for file in files:
     df = pd.read_csv(file)
     df.columns = df.columns.str.strip().str.lower()
+    
+    # Use standardize_cols function
     res = standardize_cols(df, STATE)
     if res[0]:
         df = res[1]
@@ -238,14 +235,15 @@ for file in files:
     # Standardize timestamp data type
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
     df = df[df['timestamp'].dt.date == pd.to_datetime(date).date()]
-    # Sort by county name then by date and reorder columns 
 
-    for county in master_county_dict[STATE]:
+    # Sort by county name then by date
+    county_list = dupe_list[STATE]
+    for county in county_list:
         county_df = df[df['county'] == county]
-
-        if not county_df.empty:
+        
+        if county_df.size != 0:
             county_df = county_df[['county', 'customers_affected', 'customers_served', 'timestamp']]
-            county_df.sort_values('timestamp')
+            county_df = county_df.sort_values('timestamp')
 
             # Group by timestamp and give IDs to each new outage
             last_id = county_dfs[county]['ID'].max() if not county_dfs[county].empty else 0
@@ -268,46 +266,70 @@ for file in files:
                         .reset_index()
             )
 
+            result['lower_bound_customers_affected'] = 0
             result['duration'] = result['end_time'] - result['start_time']
+
             if county_dfs[county].empty:
                 county_dfs[county] = result
             else:
                 county_dfs[county] = pd.concat([county_dfs[county], result], ignore_index=True)
 
-# Within each county, sort by chronological starting time
+# Neel - Task #2: Calculate total customers served per county (sum across all providers)
+county_customers_served = {}
+
 for county in county_dfs:
-    county_dfs[county] = county_dfs[county].sort_values('start_time').reset_index(drop=True)
-    county_dfs[county]['ID'] = range(1, len(county_dfs[county]) + 1)  
+    if not county_dfs[county].empty:
+        # Convert customers_served to numeric
+        county_dfs[county]['customers_served'] = pd.to_numeric(
+            county_dfs[county]['customers_served'], 
+            errors='coerce'
+        ).fillna(0)
+        
+        if county_dfs[county]['customers_served'].sum() > 0:
+            total_served = county_dfs[county]['customers_served'].sum()
+            county_customers_served[county] = total_served
+            county_dfs[county]['customers_served'] = total_served
+        else:
+            county_customers_served[county] = 0
+    else:
+        county_customers_served[county] = 0
 
-
+# Neel - Task #1: Calculate lower bound (single max across entire day for each county)
+for county in county_dfs:
+    if not county_dfs[county].empty:
+        # Convert customers_affected to numeric
+        county_dfs[county]['customers_affected'] = pd.to_numeric(
+            county_dfs[county]['customers_affected'], 
+            errors='coerce'
+        ).fillna(0)
+        
+        if county_dfs[county]['customers_affected'].sum() > 0:
+            # Get the maximum customers_affected across ALL outages in this county for the day
+            daily_max = county_dfs[county]['customers_affected'].max()
+            # Apply this same value to all rows
+            county_dfs[county]['lower_bound_customers_affected'] = daily_max
 
 # Create filler dataframes for counties with no reported outages
-served_historical = pd.read_csv(f"Processing\\CustomersServed\\{STATE}_customers_served.csv")
 for county in master_county_dict[STATE]:
     if county_dfs[county].empty:
-        row = served_historical[served_historical['county'] == county]
-        cs_val = np.nan
-        if not row.empty:
-            cs_val = int(row['customers_served'].iloc[0])
-        
         result = pd.DataFrame([{
             "ID": 1,
             "county": county,
             "customers_affected": 0,
-            "customers_served": cs_val,
+            "customers_served": 0,
+            "lower_bound_customers_affected": 0,
             "start_time": pd.NaT,
             "end_time": pd.NaT,
             "duration": pd.Timedelta(0)
         }], columns=schema) 
-
         county_dfs[county] = result
-
+        
 # Uncomment below to print county level data 
-# pprint.pprint(county_dfs)
+pprint.pprint(county_dfs)
 
+# Write data to CSV
 combined = pd.concat(county_dfs.values(), ignore_index=True)
-# Uncomment below to write data to corresponding csv file
-# combined.to_csv(f"Processing\\Processed_Data\\{STATE}_all_counties_{date}.csv", index=False)
+combined.to_csv(os.path.join("Processed_Data", f"{STATE}_all_counties_{date}.csv"), index=False)
 
 num_counties = combined['county'].nunique()
 print(f"Total number of counties reported for {STATE}: {num_counties}")
