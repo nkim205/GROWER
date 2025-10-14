@@ -8,7 +8,7 @@ from datetime import timedelta
 
 ### PREPROCESSING WORK
 
-# Get all column names
+# Get all column names files = glob.glob('Processing\\States\\**\\*.csv')  
 files = glob.glob(os.path.join('States', '**', '*.csv'), recursive=True)
 cols = set()   
 
@@ -71,8 +71,8 @@ for state in glob.glob(base):
         master_county_dict[state_code] = county_list
 
 # Check for different names being used for the same county
-dupe_dict = {}
-dupe_list = {}
+dupe_dict = {}  # Stores {State : {original name : final name}}
+dupe_list = {}  # Stores {State : [original names]} 
 
 for code in raw_county_dict:
     dupe_entry = {}
@@ -82,11 +82,12 @@ for code in raw_county_dict:
         match, score, _ = process.extractOne(raw, master_county_dict[code])
         if score >= 85: 
             dupe_entry[raw] = match
+	    # dupe_entry.append({raw: {match: score}})
             dupe_names.append(raw)
     dupe_dict[code] = dupe_entry
     dupe_list[code] = dupe_names
 
-# Partner's Task #3: Standardizes the df columns for processing purposes
+# Standardizes the df columns for processing purposes
 def standardize_cols(df, state):
     # Remove duplicate customers affected columns, keeping the one with the highest sum
     dupes = [c for c in df.columns if c.strip().lower() in c_affected]
@@ -134,7 +135,7 @@ def standardize_cols(df, state):
     if skip:
         return [False, df]  
     else:
-        # Standardize customers affected and served columns
+        # Standardize customers affected and served columns (e.g. "123,456" --> 123456)
         df['customers_affected'] = (
             pd.to_numeric(
                 df['customers_affected']
@@ -213,7 +214,7 @@ for state in glob.glob(os.path.join(base, '*')):
 ### PROCESSING 
 STATE = 'TN'
 
-# Initialize with updated schema including lower_bound_customers_affected
+# Initialize a list of dictionaries, each entry representing a county and its data 
 schema = ["ID", "county", "customers_affected", "customers_served", "lower_bound_customers_affected", "start_time", "end_time", "duration"]
 county_dfs = {c: pd.DataFrame(columns=schema) for c in master_county_dict[STATE]}
 files = glob.glob(os.path.join('States', STATE, '*.csv'))
@@ -235,6 +236,7 @@ for file in files:
     # Standardize timestamp data type
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
     df = df[df['timestamp'].dt.date == pd.to_datetime(date).date()]
+    # Sort by county name then by date and reorder columns 
 
     # Sort by county name then by date
     county_list = dupe_list[STATE]
@@ -274,7 +276,7 @@ for file in files:
             else:
                 county_dfs[county] = pd.concat([county_dfs[county], result], ignore_index=True)
 
-# Neel - Task #2: Calculate total customers served per county (sum across all providers)
+# Within each county, sort by chronological starting time
 county_customers_served = {}
 
 for county in county_dfs:
@@ -294,7 +296,6 @@ for county in county_dfs:
     else:
         county_customers_served[county] = 0
 
-# Neel - Task #1: Calculate lower bound (single max across entire day for each county)
 for county in county_dfs:
     if not county_dfs[county].empty:
         # Convert customers_affected to numeric
@@ -329,6 +330,7 @@ pprint.pprint(county_dfs)
 
 # Write data to CSV
 combined = pd.concat(county_dfs.values(), ignore_index=True)
+# Uncomment below to write data to corresponding csv file
 combined.to_csv(os.path.join("Processed_Data", f"{STATE}_all_counties_{date}.csv"), index=False)
 
 num_counties = combined['county'].nunique()
