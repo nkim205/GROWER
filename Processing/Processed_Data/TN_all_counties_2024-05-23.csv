@@ -1,47 +1,96 @@
-ID,county,customers_affected,customers_served,start_time,end_time,duration
-1,anderson,UNKNOWN,12,2024-05-23 03:12:31,2024-05-23 04:12:31,0 days 01:00:00
-1,cheatham,5,"14,717",2024-05-23 00:09:27,2024-05-23 07:54:27,0 days 07:45:00
-2,cheatham,35,"14,717",2024-05-23 10:39:26,2024-05-23 12:09:28,0 days 01:30:02
-3,cheatham,30,4520,2024-05-23 11:24:07,2024-05-23 19:24:13,0 days 08:00:06
-4,cheatham,2,"14,717",2024-05-23 14:54:27,2024-05-23 15:54:27,0 days 01:00:00
-5,cheatham,2,"14,717",2024-05-23 18:09:27,2024-05-23 19:09:28,0 days 01:00:01
-6,cheatham,3,"14,717",2024-05-23 21:24:27,2024-05-23 23:39:28,0 days 02:15:01
-1,dickson,30,29316,2024-05-23 00:09:07,2024-05-23 00:24:05,0 days 00:14:58
-2,dickson,1,29316,2024-05-23 04:39:11,2024-05-23 06:09:12,0 days 01:30:01
-3,dickson,15,29316,2024-05-23 09:09:08,2024-05-23 10:54:08,0 days 01:45:00
-4,dickson,33,29316,2024-05-23 12:24:35,2024-05-23 21:54:05,0 days 09:29:30
-1,dyer,1,4592,2024-05-23 00:17:56,2024-05-23 01:17:55,0 days 00:59:59
-1,fayette,2,21667,2024-05-23 00:02:46,2024-05-23 00:02:46,0 days 00:00:00
-2,fayette,2,21674,2024-05-23 14:02:46,2024-05-23 15:02:47,0 days 01:00:01
-3,fayette,11,21674,2024-05-23 18:32:47,2024-05-23 21:02:46,0 days 02:29:59
-1,grainger,UNKNOWN,941821311024,2024-05-23 01:42:31,2024-05-23 06:57:31,0 days 05:15:00
-2,grainger,7,10126,2024-05-23 16:32:34,2024-05-23 17:47:35,0 days 01:15:01
-3,grainger,1,10126,2024-05-23 20:17:33,2024-05-23 21:47:33,0 days 01:30:00
-4,grainger,UNKNOWN,1,2024-05-23 23:27:31,2024-05-23 23:57:33,0 days 00:30:02
-1,hamblen,189,6713,2024-05-23 00:08:47,2024-05-23 23:53:46,0 days 23:44:59
-2,hamblen,1,9996,2024-05-23 15:02:35,2024-05-23 15:02:35,0 days 00:00:00
-3,hamblen,1,9996,2024-05-23 20:17:33,2024-05-23 20:32:34,0 days 00:15:01
-1,hawkins,1142,24587,2024-05-23 00:08:47,2024-05-23 23:53:46,0 days 23:44:59
-1,haywood,1,655,2024-05-23 17:47:47,2024-05-23 18:32:47,0 days 00:45:00
-1,hickman,1,4471,2024-05-23 15:24:13,2024-05-23 15:39:15,0 days 00:15:02
-1,jefferson,4,28431,2024-05-23 11:32:34,2024-05-23 15:02:35,0 days 03:30:01
-1,knox,UNKNOWN,731874,2024-05-23 00:12:31,2024-05-23 23:57:33,0 days 23:45:02
-1,lauderdale,2,4830,2024-05-23 21:17:55,2024-05-23 23:02:56,0 days 01:45:01
-1,montgomery,4,"25,863",2024-05-23 00:09:27,2024-05-23 00:54:28,0 days 00:45:01
-2,montgomery,2,"25,863",2024-05-23 03:39:28,2024-05-23 08:54:27,0 days 05:14:59
-3,montgomery,45,"25,863",2024-05-23 12:09:28,2024-05-23 16:54:27,0 days 04:44:59
-4,montgomery,1,"25,863",2024-05-23 18:09:27,2024-05-23 18:09:27,0 days 00:00:00
-1,robertson,98,"26,484",2024-05-23 00:09:27,2024-05-23 16:09:28,0 days 16:00:01
-2,robertson,2,"26,484",2024-05-23 19:24:28,2024-05-23 21:54:28,0 days 02:30:00
-3,robertson,2,"26,484",2024-05-23 23:39:28,2024-05-23 23:54:27,0 days 00:14:59
-1,sevier,UNKNOWN,11,2024-05-23 03:12:31,2024-05-23 04:57:31,0 days 01:45:00
-2,sevier,UNKNOWN,2,2024-05-23 12:12:31,2024-05-23 12:27:32,0 days 00:15:01
-3,sevier,UNKNOWN,3,2024-05-23 15:27:31,2024-05-23 15:42:32,0 days 00:15:01
-4,sevier,UNKNOWN,1128,2024-05-23 23:12:31,2024-05-23 23:57:33,0 days 00:45:02
-1,stewart,981,"7,942",2024-05-23 00:09:27,2024-05-23 03:09:28,0 days 03:00:01
-2,stewart,18,"7,942",2024-05-23 12:39:28,2024-05-23 13:39:28,0 days 01:00:00
-3,stewart,10,"7,942",2024-05-23 21:54:28,2024-05-23 22:39:28,0 days 00:45:00
-1,sumner,9,"37,227",2024-05-23 00:09:27,2024-05-23 06:09:28,0 days 06:00:01
-2,sumner,1,"37,227",2024-05-23 09:54:27,2024-05-23 10:24:28,0 days 00:30:01
-3,sumner,90,"37,227",2024-05-23 11:54:28,2024-05-23 23:54:27,0 days 11:59:59
-1,union,UNKNOWN,50,2024-05-23 03:12:31,2024-05-23 21:27:31,0 days 18:15:00
+ID,county,customers_affected,customers_served,lower_bound_customers_affected,start_time,end_time,duration
+1,anderson,0,0,0,,,0 days
+1,bedford,0,0,0,,,0 days
+1,benton,0,0,0,,,0 days
+1,bledsoe,0,0,0,,,0 days
+1,blount,0,0,0,,,0 days
+1,bradley,0,0,0,,,0 days
+1,campbell,0,0,0,,,0 days
+1,cannon,0,0,0,,,0 days
+1,carroll,0,0,0,,,0 days
+1,carter,0,0,0,,,0 days
+1,cheatham,0,0,0,,,0 days
+1,chester,0,0,0,,,0 days
+1,claiborne,0,0,0,,,0 days
+1,clay,0,0,0,,,0 days
+1,cocke,0,0,0,,,0 days
+1,coffee,0,0,0,,,0 days
+1,crockett,0,0,0,,,0 days
+1,cumberland,0,0,0,,,0 days
+1,davidson,0,0,0,,,0 days
+1,decatur,0,0,0,,,0 days
+1,dekalb,0,0,0,,,0 days
+1,dickson,0,0,0,,,0 days
+1,dyer,0,0,0,,,0 days
+1,fayette,0,0,0,,,0 days
+1,fentress,0,0,0,,,0 days
+1,franklin,0,0,0,,,0 days
+1,gibson,0,0,0,,,0 days
+1,giles,0,0,0,,,0 days
+1,grainger,0,0,0,,,0 days
+1,greene,0,0,0,,,0 days
+1,grundy,0,0,0,,,0 days
+1,hamblen,0,0,0,,,0 days
+1,hamilton,0,0,0,,,0 days
+1,hancock,0,0,0,,,0 days
+1,hardeman,0,0,0,,,0 days
+1,hardin,0,0,0,,,0 days
+1,hawkins,0,0,0,,,0 days
+1,haywood,0,0,0,,,0 days
+1,henderson,0,0,0,,,0 days
+1,henry,0,0,0,,,0 days
+1,hickman,0,0,0,,,0 days
+1,houston,0,0,0,,,0 days
+1,humphreys,0,0,0,,,0 days
+1,jackson,0,0,0,,,0 days
+1,jefferson,0,0,0,,,0 days
+1,johnson,0,0,0,,,0 days
+1,knox,0,0,0,,,0 days
+1,lake,0,0,0,,,0 days
+1,lauderdale,0,0,0,,,0 days
+1,lawrence,0,0,0,,,0 days
+1,lewis,0,0,0,,,0 days
+1,lincoln,0,0,0,,,0 days
+1,loudon,0,0,0,,,0 days
+1,mcminn,0,0,0,,,0 days
+1,mcnairy,0,0,0,,,0 days
+1,macon,0,0,0,,,0 days
+1,madison,0,0,0,,,0 days
+1,marion,0,0,0,,,0 days
+1,marshall,0,0,0,,,0 days
+1,maury,0,0,0,,,0 days
+1,meigs,0,0,0,,,0 days
+1,monroe,0,0,0,,,0 days
+1,montgomery,0,0,0,,,0 days
+1,moore,0,0,0,,,0 days
+1,morgan,0,0,0,,,0 days
+1,obion,0,0,0,,,0 days
+1,overton,0,0,0,,,0 days
+1,perry,0,0,0,,,0 days
+1,pickett,0,0,0,,,0 days
+1,polk,0,0,0,,,0 days
+1,putnam,0,0,0,,,0 days
+1,rhea,0,0,0,,,0 days
+1,roane,0,0,0,,,0 days
+1,robertson,0,0,0,,,0 days
+1,rutherford,0,0,0,,,0 days
+1,scott,0,0,0,,,0 days
+1,sequatchie,0,0,0,,,0 days
+1,sevier,0,0,0,,,0 days
+1,shelby,0,0,0,,,0 days
+1,smith,0,0,0,,,0 days
+1,stewart,0,0,0,,,0 days
+1,sullivan,0,0,0,,,0 days
+1,sumner,0,0,0,,,0 days
+1,tipton,0,0,0,,,0 days
+1,trousdale,0,0,0,,,0 days
+1,unicoi,0,0,0,,,0 days
+1,union,0,0,0,,,0 days
+1,van buren,0,0,0,,,0 days
+1,warren,0,0,0,,,0 days
+1,washington,0,0,0,,,0 days
+1,wayne,0,0,0,,,0 days
+1,weakley,0,0,0,,,0 days
+1,white,0,0,0,,,0 days
+1,williamson,0,0,0,,,0 days
+1,wilson,0,0,0,,,0 days
