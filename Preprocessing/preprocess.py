@@ -115,7 +115,7 @@ class Preprocess():
 
         return None
     
-
-data = pd.read_csv("Preprocessing\\AR\\ar_outages_past_year.csv")
-pre = Preprocess(name="Preprocess", state="AR")
+state = "ar"
+data = pd.read_csv(f"Preprocessing\\{state.capitalize()}\\{state}_outages_past_year.csv")
+pre = Preprocess(name="Preprocess", state=f"{state.capitalize()}")
 pre.preprocess(data)
