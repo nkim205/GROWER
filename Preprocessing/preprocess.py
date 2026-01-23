@@ -4,11 +4,6 @@ import pandas as pd
 from rapidfuzz import process
 import pprint
 
-# ORDER:
-# 1. Run writeRawColNames() to get raw_col_names.txt
-# 2. Manually Build col_map.csv 
-# 3. Run the rest of the builder functions
-
 class Preprocess():
     def __init__(self, name, state):
         # super.__init__(name)
@@ -115,8 +110,8 @@ class Preprocess():
         # NOTE: some sub-routines rely on the manually built column mapping to be completed
         data.columns = [col.strip().lower() for col in data.columns]
         self.writeRawColNames(data)
-        self.buildRawCountySet(data)
-        self.buildCountyMap(data)
+        # self.buildRawCountySet(data)
+        # self.buildCountyMap(data)
 
         return None
     
