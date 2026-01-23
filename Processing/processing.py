@@ -37,6 +37,8 @@ raw_county_dict = {}
 base = os.path.join("Processing\\States")
 key_val_set = set()
 
+pprint.pprint(col_map)
+
 for state in glob.glob(os.path.join(base, '*')):
     state_code = state[-2:]
     county_set = set()
@@ -215,144 +217,147 @@ for state in glob.glob(os.path.join(base, '*')):
 STATE = 'AL'
 DATE = "2024-05-23"
 
-# Initialize a list of dictionaries, each entry representing a county and its data 
-schema = ["ID", "county", "daily_max_customers_affected", "per_outage_customers_afffected", "customers_served", "start_time", "end_time", "duration"]
-county_dfs = {c: pd.DataFrame(columns=schema) for c in master_county_dict[STATE]}
-files = glob.glob(os.path.join('Processing\\States', STATE, '*.csv'))
+# # Initialize a list of dictionaries, each entry representing a county and its data 
+# schema = ["ID", "county", "daily_max_customers_affected", "per_outage_customers_afffected", "customers_served", "start_time", "end_time", "duration"]
+# county_dfs = {c: pd.DataFrame(columns=schema) for c in master_county_dict[STATE]}
+# files = glob.glob(os.path.join('Processing\\States', STATE, '*.csv'))
 
-for file in files:
-    df = pd.read_csv(file)
-    df.columns = df.columns.str.strip().str.lower()
+# for file in files:
+#     df = pd.read_csv(file)
+#     df.columns = df.columns.str.strip().str.lower()
     
-    # Use standardize_cols function
-    res = standardize_cols(df, STATE)
-    if res[0]:
-        df = res[1]
-    else:
-        continue
+#     # Use standardize_cols function
+#     res = standardize_cols(df, STATE)
+#     if res[0]:
+#         df = res[1]
+#     else:
+#         continue
 
-    # Standardize timestamp data type
-    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-    df = df[df['timestamp'].dt.date == pd.to_datetime(DATE).date()]
-    # Sort by county name then by date and reorder columns 
+#     # Standardize timestamp data type
+#     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+#     df = df[df['timestamp'].dt.date == pd.to_datetime(DATE).date()]
+#     # Sort by county name then by date and reorder columns 
 
-    # Sort by county name then by date
-    county_list = dupe_list[STATE]
-    for county in county_list:
-        county_df = df[df['county'] == county]
+#     # Sort by county name then by date
+#     county_list = dupe_list[STATE]
+#     for county in county_list:
+#         county_df = df[df['county'] == county]
         
-        if county_df.size != 0:
-            county_df = county_df[['county', 'per_outage_customers_afffected', 'customers_served', 'timestamp']]
-            county_df = county_df.sort_values('timestamp')
+#         if county_df.size != 0:
+#             county_df = county_df[['county', 'per_outage_customers_afffected', 'customers_served', 'timestamp']]
+#             county_df = county_df.sort_values('timestamp')
 
-            # Group by timestamp and give IDs to each new outage
-            last_id = county_dfs[county]['ID'].max() if not county_dfs[county].empty else 0
-            threshold = timedelta(hours=1, minutes=14)
+#             # Group by timestamp and give IDs to each new outage
+#             last_id = county_dfs[county]['ID'].max() if not county_dfs[county].empty else 0
+#             threshold = timedelta(hours=1, minutes=14)
 
-            county_df['diff'] = county_df['timestamp'].diff()
-            mask = county_df['diff'] > threshold
-            county_df['new_outage'] = (county_df['diff'].isna() | mask)
-            county_df['ID'] = county_df['new_outage'].cumsum() + last_id
+#             county_df['diff'] = county_df['timestamp'].diff()
+#             mask = county_df['diff'] > threshold
+#             county_df['new_outage'] = (county_df['diff'].isna() | mask)
+#             county_df['ID'] = county_df['new_outage'].cumsum() + last_id
 
-            result = (
-                county_df.groupby('ID')
-                        .agg(
-                            county=('county', 'first'),
-                            per_outage_customers_afffected=('per_outage_customers_afffected', 'max'),
-                            customers_served=('customers_served', 'max'),
-                            start_time=('timestamp', 'min'),
-                            end_time=('timestamp', 'max')
-                        )
-                        .reset_index()
-            )
+#             result = (
+#                 county_df.groupby('ID')
+#                         .agg(
+#                             county=('county', 'first'),
+#                             per_outage_customers_afffected=('per_outage_customers_afffected', 'max'),
+#                             customers_served=('customers_served', 'max'),
+#                             start_time=('timestamp', 'min'),
+#                             end_time=('timestamp', 'max')
+#                         )
+#                         .reset_index()
+#             )
 
-            result['daily_max_customers_affected'] = 0
-            result['duration'] = result['end_time'] - result['start_time']
+#             result['daily_max_customers_affected'] = 0
+#             result['duration'] = result['end_time'] - result['start_time']
 
-            if county_dfs[county].empty:
-                county_dfs[county] = result
-            else:
-                county_dfs[county] = pd.concat([county_dfs[county], result], ignore_index=True)
+#             if county_dfs[county].empty:
+#                 county_dfs[county] = result
+#             else:
+#                 county_dfs[county] = pd.concat([county_dfs[county], result], ignore_index=True)
 
-# Fill in daily max values
-for county in county_dfs:
-    if not county_dfs[county].empty:
-        # Convert customers_affected to numeric
-        county_dfs[county]['per_outage_customers_afffected'] = pd.to_numeric(
-            county_dfs[county]['per_outage_customers_afffected'], 
-            errors='coerce'
-        )
+# # Fill in daily max values
+# for county in county_dfs:
+#     if not county_dfs[county].empty:
+#         # Convert customers_affected to numeric
+#         county_dfs[county]['per_outage_customers_afffected'] = pd.to_numeric(
+#             county_dfs[county]['per_outage_customers_afffected'], 
+#             errors='coerce'
+#         )
         
-        if county_dfs[county]['per_outage_customers_afffected'].sum() > 0:
-            # Get the maximum customers_affected across ALL outages in this county for the day
-            daily_max = county_dfs[county]['per_outage_customers_afffected'].max()
-            # Apply this same value to all rows
-            county_dfs[county]['daily_max_customers_affected'] = daily_max
+#         if county_dfs[county]['per_outage_customers_afffected'].sum() > 0:
+#             # Get the maximum customers_affected across ALL outages in this county for the day
+#             daily_max = county_dfs[county]['per_outage_customers_afffected'].max()
+#             # Apply this same value to all rows
+#             county_dfs[county]['daily_max_customers_affected'] = daily_max
 
-# Create filler dataframes for counties with no reported outages
-for county in master_county_dict[STATE]:
-    if county_dfs[county].empty:
+# # Create filler dataframes for counties with no reported outages
+# for county in master_county_dict[STATE]:
+#     if county_dfs[county].empty:
 
-        # Pull historical customers served
-        historical_base = glob.glob(os.path.join('Processing\\CustomersServed', f"{STATE}_customers_served.csv"))
-        historical_val = -1
-        if historical_base:
-            historical_served = pd.read_csv(historical_base[0])
-            historical_row = historical_served.loc[historical_served['county'] == county] 
+#         # Pull historical customers served
+#         historical_base = glob.glob(os.path.join('Processing\\CustomersServed', f"{STATE}_customers_served.csv"))
+#         historical_val = -1
+#         if historical_base:
+#             historical_served = pd.read_csv(historical_base[0])
+#             historical_row = historical_served.loc[historical_served['county'] == county] 
             
-            if not historical_row.empty:
-                historical_val = int(row["customers_served"])
-                print(f"{county} County had no reported outages. Filling in {historical_val}")
-            else:
-                print(f"Unable to find historical customers served data for {county}, {STATE}")
-        else:
-            print(f"Unable to find historical customers served data for {STATE}")
+#             if not historical_row.empty:
+#                 historical_val = int(row["customers_served"])
+#                 print(f"{county} County had no reported outages. Filling in {historical_val}")
+#             else:
+#                 print(f"Unable to find historical customers served data for {county}, {STATE}")
+#         else:
+#             print(f"Unable to find historical customers served data for {STATE}")
 
-        result = pd.DataFrame([{
-            "ID": 1,
-            "county": county,
-            "daily_max_customers_affected": 0,
-            "per_outage_customers_afffected": 0,
-            "customers_served": historical_val,
-            "start_time": pd.NaT,
-            "end_time": pd.NaT,
-            "duration": pd.Timedelta(0)
-        }], columns=schema) 
-        county_dfs[county] = result
+#         result = pd.DataFrame([{
+#             "ID": 1,
+#             "county": county,
+#             "daily_max_customers_affected": 0,
+#             "per_outage_customers_afffected": 0,
+#             "customers_served": historical_val,
+#             "start_time": pd.NaT,
+#             "end_time": pd.NaT,
+#             "duration": pd.Timedelta(0)
+#         }], columns=schema) 
+#         county_dfs[county] = result
         
-    # Reindex to reorganize column order
-    county_dfs[county] = county_dfs[county].reindex(columns=schema)
+#     # Reindex to reorganize column order
+#     county_dfs[county] = county_dfs[county].reindex(columns=schema)
 
 
-# Fill in missing data for counties with no reports that day
-county_customers_served = {}
+# # Fill in missing data for counties with no reports that day
+# county_customers_served = {}
 
-# Pull most recent customers served data (WIP integration)
-for county in county_dfs:
-    if not county_dfs[county].empty:
-        # Convert customers_served to numeric
-        county_dfs[county]['customers_served'] = pd.to_numeric(
-            county_dfs[county]['customers_served'], 
-            errors='coerce'
-        ).fillna(0)
+# # Pull most recent customers served data (WIP integration)
+# for county in county_dfs:
+#     if not county_dfs[county].empty:
+#         # Convert customers_served to numeric
+#         county_dfs[county]['customers_served'] = pd.to_numeric(
+#             county_dfs[county]['customers_served'], 
+#             errors='coerce'
+#         ).fillna(0)
         
-        if county_dfs[county]['customers_served'].sum() > 0:
-            total_served = county_dfs[county]['customers_served'].sum()
-            county_customers_served[county] = total_served
-            county_dfs[county]['customers_served'] = total_served
-        else:
-            county_customers_served[county] = 0
-    else:
-        county_customers_served[county] = 0
+#         if county_dfs[county]['customers_served'].sum() > 0:
+#             unique_cs = county_dfs[county]['customers_served'].drop_duplicates()
+#             sum = int(unique_cs.unique().sum())
+#             print(f"{county} : {sum}")
+#             total_served = county_dfs[county]['customers_served'].sum()
+#             county_customers_served[county] = total_served
+#             county_dfs[county]['customers_served'] = total_served
+#         else:
+#             county_customers_served[county] = 0
+#     else:
+#         county_customers_served[county] = 0
 
 # Uncomment below to print county level data 
 # pprint.pprint(county_dfs)
 
 # Write data to CSV
-combined = pd.concat(county_dfs.values(), ignore_index=True)
-# Uncomment below to write data to corresponding csv file
-combined.to_csv(os.path.join("Processing\\Processed_Data", f"{STATE}_all_counties_{DATE}.csv"), index=False)
+# combined = pd.concat(county_dfs.values(), ignore_index=True)
+# # Uncomment below to write data to corresponding csv file
+# combined.to_csv(os.path.join("Processing\\Processed_Data", f"{STATE}_all_counties_{DATE}.csv"), index=False)
 
-num_counties = combined['county'].nunique()
-print(f"Total number of counties reported for {STATE}: {num_counties}")
-print(f"Processing complete for {STATE}")
+# num_counties = combined['county'].nunique()
+# print(f"Total number of counties reported for {STATE}: {num_counties}")
+# print(f"Processing complete for {STATE}")
