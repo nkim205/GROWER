@@ -26,7 +26,7 @@ col_map = {}
 for name in county:
     col_map[name] = "county"
 for caff in c_affected:
-    col_map[caff] = "per_outage_customers_afffected"
+    col_map[caff] = "per_outage_customers_affected"
 for cser in c_served:
     col_map[cser] = "customers_served"
 for time in timestamp:
@@ -120,12 +120,12 @@ def standardize_cols(df, state):
             df['% out'] = pd.to_numeric(df['% out'], errors="coerce") / 100
             df['customers_served'] = np.where(
                 (df['% out'].notna()) & (df['% out'] != 0), 
-                ((df['per_outage_customers_afffected'].astype(float) / df['% out']).round().astype("Int64")), 
+                ((df['per_outage_customers_affected'].astype(float) / df['% out']).round().astype("Int64")), 
                 np.nan)
             df.drop(columns=['% out'], inplace=True)
 
     # Check for if any columns are still missing. If so, skip this provider
-    std_names = ['county', 'per_outage_customers_afffected', 'customers_served', 'timestamp']
+    std_names = ['county', 'per_outage_customers_affected', 'customers_served', 'timestamp']
     skip = False
     missing = []
 
@@ -138,9 +138,9 @@ def standardize_cols(df, state):
         return [False, df]  
     else:
         # Standardize customers affected and served columns (e.g. "123,456" --> 123456)
-        df['per_outage_customers_afffected'] = (
+        df['per_outage_customers_affected'] = (
             pd.to_numeric(
-                df['per_outage_customers_afffected']
+                df['per_outage_customers_affected']
                     .astype(str)
                     .str.replace('"', '', regex=False)
                     .str.replace(',', '', regex=False),
@@ -217,26 +217,26 @@ for state in glob.glob(os.path.join(base, '*')):
 STATE = 'AL'
 DATE = "2024-05-23"
 
-# # Initialize a list of dictionaries, each entry representing a county and its data 
-# schema = ["ID", "county", "daily_max_customers_affected", "per_outage_customers_afffected", "customers_served", "start_time", "end_time", "duration"]
-# county_dfs = {c: pd.DataFrame(columns=schema) for c in master_county_dict[STATE]}
-# files = glob.glob(os.path.join('Processing\\States', STATE, '*.csv'))
+# Initialize a list of dictionaries, each entry representing a county and its data 
+schema = ["ID", "county", "daily_max_customers_affected", "per_outage_customers_affected", "customers_served", "start_time", "end_time", "duration"]
+county_dfs = {c: pd.DataFrame(columns=schema) for c in master_county_dict[STATE]}
+files = glob.glob(os.path.join('Processing\\States', STATE, '*.csv'))
 
-# for file in files:
-#     df = pd.read_csv(file)
-#     df.columns = df.columns.str.strip().str.lower()
+for file in files:
+    df = pd.read_csv(file)
+    df.columns = df.columns.str.strip().str.lower()
     
-#     # Use standardize_cols function
-#     res = standardize_cols(df, STATE)
-#     if res[0]:
-#         df = res[1]
-#     else:
-#         continue
+    # Use standardize_cols function
+    res = standardize_cols(df, STATE)
+    if res[0]:
+        df = res[1]
+    else:
+        continue
 
-#     # Standardize timestamp data type
-#     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-#     df = df[df['timestamp'].dt.date == pd.to_datetime(DATE).date()]
-#     # Sort by county name then by date and reorder columns 
+    # Standardize timestamp data type
+    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+    df = df[df['timestamp'].dt.date == pd.to_datetime(DATE).date()]
+    # Sort by county name then by date and reorder columns 
 
 #     # Sort by county name then by date
 #     county_list = dupe_list[STATE]
@@ -244,7 +244,7 @@ DATE = "2024-05-23"
 #         county_df = df[df['county'] == county]
         
 #         if county_df.size != 0:
-#             county_df = county_df[['county', 'per_outage_customers_afffected', 'customers_served', 'timestamp']]
+#             county_df = county_df[['county', 'per_outage_customers_affected', 'customers_served', 'timestamp']]
 #             county_df = county_df.sort_values('timestamp')
 
 #             # Group by timestamp and give IDs to each new outage
@@ -260,7 +260,7 @@ DATE = "2024-05-23"
 #                 county_df.groupby('ID')
 #                         .agg(
 #                             county=('county', 'first'),
-#                             per_outage_customers_afffected=('per_outage_customers_afffected', 'max'),
+#                             per_outage_customers_affected=('per_outage_customers_affected', 'max'),
 #                             customers_served=('customers_served', 'max'),
 #                             start_time=('timestamp', 'min'),
 #                             end_time=('timestamp', 'max')
@@ -280,14 +280,14 @@ DATE = "2024-05-23"
 # for county in county_dfs:
 #     if not county_dfs[county].empty:
 #         # Convert customers_affected to numeric
-#         county_dfs[county]['per_outage_customers_afffected'] = pd.to_numeric(
-#             county_dfs[county]['per_outage_customers_afffected'], 
+#         county_dfs[county]['per_outage_customers_affected'] = pd.to_numeric(
+#             county_dfs[county]['per_outage_customers_affected'], 
 #             errors='coerce'
 #         )
         
-#         if county_dfs[county]['per_outage_customers_afffected'].sum() > 0:
+#         if county_dfs[county]['per_outage_customers_affected'].sum() > 0:
 #             # Get the maximum customers_affected across ALL outages in this county for the day
-#             daily_max = county_dfs[county]['per_outage_customers_afffected'].max()
+#             daily_max = county_dfs[county]['per_outage_customers_affected'].max()
 #             # Apply this same value to all rows
 #             county_dfs[county]['daily_max_customers_affected'] = daily_max
 
@@ -314,7 +314,7 @@ DATE = "2024-05-23"
 #             "ID": 1,
 #             "county": county,
 #             "daily_max_customers_affected": 0,
-#             "per_outage_customers_afffected": 0,
+#             "per_outage_customers_affected": 0,
 #             "customers_served": historical_val,
 #             "start_time": pd.NaT,
 #             "end_time": pd.NaT,
@@ -351,13 +351,13 @@ DATE = "2024-05-23"
 #         county_customers_served[county] = 0
 
 # Uncomment below to print county level data 
-# pprint.pprint(county_dfs)
+pprint.pprint(county_dfs)
 
 # Write data to CSV
-# combined = pd.concat(county_dfs.values(), ignore_index=True)
-# # Uncomment below to write data to corresponding csv file
-# combined.to_csv(os.path.join("Processing\\Processed_Data", f"{STATE}_all_counties_{DATE}.csv"), index=False)
+combined = pd.concat(county_dfs.values(), ignore_index=True)
+# Uncomment below to write data to corresponding csv file
+combined.to_csv(os.path.join("Processing\\Processed_Data", f"int_{STATE}_all_counties_{DATE}.csv"), index=False)
 
-# num_counties = combined['county'].nunique()
-# print(f"Total number of counties reported for {STATE}: {num_counties}")
-# print(f"Processing complete for {STATE}")
+num_counties = combined['county'].nunique()
+print(f"Total number of counties reported for {STATE}: {num_counties}")
+print(f"Processing complete for {STATE}")

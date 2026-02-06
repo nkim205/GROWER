@@ -5,8 +5,7 @@ from rapidfuzz import process
 import pprint
 
 class Preprocess():
-    def __init__(self, name, state):
-        # super.__init__(name)
+    def __init__(self, state):
         self.state = state
         self.base_path = os.path.join("Preprocessing", f"{self.state}")
         # initialze everything else
@@ -71,9 +70,7 @@ class Preprocess():
             for c in raw_county_set:
                 f.write(c + "\n")
 
-
-
-    def buildCountyMap(self, data):
+    def buildCountyMap(self):
         # Builds the mapping of {original name : standardized name} and stores it in a csv
         
         # Get the list of raw county names
@@ -103,19 +100,36 @@ class Preprocess():
         output_path = os.path.join(self.base_path, "county_map.csv")
         rows = [(raw, vals[0], vals[1]) for raw, vals in county_map.items()]
         df = pd.DataFrame(rows, columns=["raw", "standard", "score"])
-        df.to_csv(output_path, index =False)
+        csv_df = df.copy()
+        csv_df.to_csv(output_path, index =False)
+
+    def buildColLists(self):
+        # Get col map
+        path = os.path.join(self.base_path, "col_map.csv")
+        col_map = pd.read_csv(path)
+        
+        # "reverse" the mappings to get the col lists then store as a new csv
+        col_lists = (
+           col_map
+            .groupby("standard")["raw"]
+            .apply(list)
+            .to_dict()
+        )
+        df = pd.DataFrame.from_dict(col_lists, orient="index").transpose()
+        df.to_csv(os.path.join(self.base_path, "raw_col_lists.csv"), index=False)
 
     def preprocess(self, data):
         # Uncomment preprocessing calls to run
         # NOTE: some sub-routines rely on the manually built column mapping to be completed
         data.columns = [col.strip().lower() for col in data.columns]
         self.writeRawColNames(data)
-        # self.buildRawCountySet(data)
-        # self.buildCountyMap(data)
+        self.buildRawCountySet(data)
+        self.buildCountyMap()
+        self.buildColLists()
 
         return None
     
-state = "ar"
+state = "al"
 data = pd.read_csv(f"Preprocessing\\{state.capitalize()}\\{state}_outages_past_year.csv")
-pre = Preprocess(name="Preprocess", state=f"{state.capitalize()}")
+pre = Preprocess(state=f"{state.capitalize()}")
 pre.preprocess(data)
